@@ -127,3 +127,31 @@ float MAX17332::readRSense()
     return (float) value * RSENSE_LSB;
 
 }
+
+float MAX17332::readTemp()
+{
+    uint16_t val;
+
+    if (!readRegisters(MAX17332_TEMP_REG, (uint8_t*) &val, sizeof(val))) {
+        return 0.0;
+    }
+
+    int16_t temp = static_cast<int16_t>(val);
+
+    return (float) val * TEMP_LSB;
+
+}
+
+float MAX17332::readSoc()
+{
+    uint16_t val;
+
+    if (!readRegisters(MAX17332_REPSOC_REG, (uint8_t*) &val, sizeof(val))) {
+        return 0.0;
+    }
+
+    int16_t soc = static_cast<int16_t>(val);
+
+    return (float) soc * PERC_LSB;
+
+}

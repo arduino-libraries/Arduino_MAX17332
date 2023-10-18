@@ -31,6 +31,9 @@
 #define MAX17332_CURR_REG           0x01C
 #define MAX17332_CURRREP_REG        0x022
 #define MAX17332_DEVNAME_REG        0x021
+#define MAX17332_TEMP_REG           0x01B
+#define MAX17332_AVSOC_REG          0x00E
+#define MAX17332_REPSOC_REG         0x006
 
 
 // REGISTERS USING MAX17332_ADDRESS_H
@@ -42,6 +45,9 @@
 #define CURRENT_LSB     1.5625e-6
 #define RSENSE_LSB      1e-3
 #define RSENSE_DEFAULT  10e-3
+#define TEMP_LSB        0.00390625      //  1/256°C
+#define PERC_LSB        0.00390625      //  1/256%
+
 
 class MAX17332 {
     public:
@@ -55,6 +61,8 @@ class MAX17332 {
         float readVCell();
         float readRSense();
         float readCurrent();
+        float readTemp();
+        float readSoc();
 
     private:
         uint8_t get_i2c_address(uint16_t reg_address);
