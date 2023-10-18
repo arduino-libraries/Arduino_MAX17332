@@ -1,0 +1,27 @@
+{
+  "name": "Arduino_MAX17332",
+  "keywords": "Stand-alone charger, Fuel gauge, BMS",
+  "description": "A library for implementing all integer signal transofrms",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/gbr1/Arduino_MAX17332"
+  },
+  "authors":
+  [
+    {
+      "name": "Giovanni Bruno",
+      "email": "g.bruno@arduino.cc",
+      "maintainer": true
+    }
+    {
+      "name": "Lucio Rossi",
+      "email": "l.rossi@ext.arduino.cc",
+      "maintainer": true
+    }
+  ],
+  "version": "0.1",
+  "frameworks": ["arduino"],
+  "platforms": "*",
+  "headers": "Arduino_MAX17332.h"
+}
