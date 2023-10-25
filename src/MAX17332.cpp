@@ -78,6 +78,88 @@ int MAX17332::readRegister(uint16_t address)
     return value;
 }
 
+int MAX17332::writeRegister(uint16_t address, uint16_t value)
+{
+    freeMem();
+    uint8_t i2c_address = get_i2c_address(address);
+    _wire->beginTransmission(i2c_address);
+    _wire->write(address & 0xFF);
+    _wire->write(value & 0xFF);         // write LSB
+    _wire->write((value >> 8) & 0xFF);  // write MSB
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
+
+    // Check for register to be correctly written?
+
+    resetFirmware();
+    protectMem();
+
+    return 1;
+}
+
+int MAX17332::freeMem() {
+
+    _wire->beginTransmission(MAX17332_ADDRESS_L);
+    _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
+    _wire->write(0x00);         // write LSB
+    _wire->write(0x00);         // write MSB
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
+
+    // MUST BE DONE TWICE
+
+    _wire->beginTransmission(MAX17332_ADDRESS_L);
+    _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
+    _wire->write(0x00);         // write LSB
+    _wire->write(0x00);         // write MSB
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
+
+    return 1;
+
+}
+
+int MAX17332::protectMem() {
+
+    _wire->beginTransmission(MAX17332_ADDRESS_L);
+    _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
+    _wire->write(0xF9);         // write LSB
+    _wire->write(0x00);         // write MSB
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
+
+    // MUST BE DONE TWICE
+
+    _wire->beginTransmission(MAX17332_ADDRESS_L);
+    _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
+    _wire->write(0xF9);         // write LSB
+    _wire->write(0x00);         // write MSB
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
+
+    return 1;
+}
+
+int MAX17332::resetFirmware() {
+    _wire->beginTransmission(MAX17332_ADDRESS_L);
+    _wire->write(MAX17332_CONFIG2_REG & 0xFF);
+    _wire->write(0x00);         // write LSB
+    _wire->write(0x80);         // write MSB
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
+
+    // Wait for POR_CMD bit to be cleared
+    while ((readRegister(MAX17332_CONFIG2_REG) & 0x8000) != 0) {}
+
+    return 1;
+}
+
 uint16_t MAX17332::readDevName()
 {   
     uint16_t dev_name;
@@ -153,5 +235,46 @@ float MAX17332::readSoc()
     int16_t soc = static_cast<int16_t>(val);
 
     return (float) soc * PERC_LSB;
+
+}
+
+int MAX17332::readLocks() {
+
+    uint16_t val;
+
+    if (!readRegisters(MAX17332_LOCK_REG, (uint8_t*) &val, sizeof(val))) {
+        return 0xffff;
+    }
+
+    return val;
+
+}
+
+uint16_t MAX17332::readCommStat() {
+    uint16_t val;
+
+    if (!readRegisters(MAX17332_COMMSTAT_REG, (uint8_t*) &val, sizeof(val))) {
+        return 0xffff;
+    }
+
+    return val;
+}
+
+int MAX17332::writeUserMem1C6(uint16_t value) {
+    if (value == readUserMem1C6()) {
+        return 1;
+    }
+    return writeRegister(MAX17332_USERMEM_1C6, value);
+
+}
+
+uint16_t MAX17332::readUserMem1C6() {
+    uint16_t val;
+
+    if (!readRegisters(MAX17332_USERMEM_1C6, (uint8_t*) &val, sizeof(val))) {
+        return 0xffff;
+    }
+
+    return val;
 
 }

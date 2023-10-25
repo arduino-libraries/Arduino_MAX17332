@@ -34,10 +34,15 @@
 #define MAX17332_TEMP_REG           0x01B
 #define MAX17332_AVSOC_REG          0x00E
 #define MAX17332_REPSOC_REG         0x006
+#define MAX17332_COMMSTAT_REG       0x061
+#define MAX17332_LOCK_REG           0x07F
+#define MAX17332_CONFIG2_REG        0x0AB
 
 
 // REGISTERS USING MAX17332_ADDRESS_H
 #define MAX17332_RSENSE_REG         0x19C
+#define MAX17332_USERMEM_1C6        0x1C6
+#define MAX17332_USERMEM_1E0        0x1E0
 
 
 // CONSTANTS
@@ -63,11 +68,19 @@ class MAX17332 {
         float readCurrent();
         float readTemp();
         float readSoc();
+        int readLocks();
+        uint16_t readCommStat();
+        int writeUserMem1C6(uint16_t value);
+        uint16_t readUserMem1C6();
 
     private:
         uint8_t get_i2c_address(uint16_t reg_address);
+        int freeMem();
+        int protectMem();
+        int resetFirmware();
         int readRegister(uint16_t address);
         int readRegisters(uint16_t address, uint8_t* data, size_t length);
+        int writeRegister(uint16_t address, uint16_t value);
     private:
         TwoWire* _wire;
 
