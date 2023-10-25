@@ -56,7 +56,7 @@
 
 class MAX17332 {
     public:
-        MAX17332(TwoWire& wire);
+        MAX17332(TwoWire& wire, uint16_t address_l=MAX17332_ADDRESS_L, uint16_t address_h=MAX17332_ADDRESS_H);
         ~MAX17332();
 
         void begin();
@@ -82,6 +82,8 @@ class MAX17332 {
         int readRegisters(uint16_t address, uint8_t* data, size_t length);
         int writeRegister(uint16_t address, uint16_t value);
     private:
+        uint16_t _address_l;
+        uint16_t _address_h;
         TwoWire* _wire;
 
 };

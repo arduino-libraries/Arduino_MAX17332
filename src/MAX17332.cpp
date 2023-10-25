@@ -20,7 +20,7 @@
 
 #include "MAX17332.h"
 
-MAX17332::MAX17332(TwoWire& wire): _wire(&wire) {}
+MAX17332::MAX17332(TwoWire& wire, uint16_t address_l, uint16_t address_h): _wire(&wire), _address_l(address_l), _address_h(address_h) {}
 
 MAX17332::~MAX17332()
 {
@@ -38,9 +38,9 @@ uint8_t MAX17332::get_i2c_address(uint16_t reg_address)
 {
 
     if (reg_address < 0x100) {
-        return MAX17332_ADDRESS_L;
+        return _address_l;
     } else {
-        return MAX17332_ADDRESS_H;
+        return _address_h;
     }
 
 }
@@ -100,7 +100,7 @@ int MAX17332::writeRegister(uint16_t address, uint16_t value)
 
 int MAX17332::freeMem() {
 
-    _wire->beginTransmission(MAX17332_ADDRESS_L);
+    _wire->beginTransmission(_address_l);
     _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
     _wire->write(0x00);         // write LSB
     _wire->write(0x00);         // write MSB
@@ -110,7 +110,7 @@ int MAX17332::freeMem() {
 
     // MUST BE DONE TWICE
 
-    _wire->beginTransmission(MAX17332_ADDRESS_L);
+    _wire->beginTransmission(_address_l);
     _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
     _wire->write(0x00);         // write LSB
     _wire->write(0x00);         // write MSB
@@ -124,7 +124,7 @@ int MAX17332::freeMem() {
 
 int MAX17332::protectMem() {
 
-    _wire->beginTransmission(MAX17332_ADDRESS_L);
+    _wire->beginTransmission(_address_l);
     _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
     _wire->write(0xF9);         // write LSB
     _wire->write(0x00);         // write MSB
@@ -134,7 +134,7 @@ int MAX17332::protectMem() {
 
     // MUST BE DONE TWICE
 
-    _wire->beginTransmission(MAX17332_ADDRESS_L);
+    _wire->beginTransmission(_address_l);
     _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
     _wire->write(0xF9);         // write LSB
     _wire->write(0x00);         // write MSB
@@ -146,7 +146,7 @@ int MAX17332::protectMem() {
 }
 
 int MAX17332::resetFirmware() {
-    _wire->beginTransmission(MAX17332_ADDRESS_L);
+    _wire->beginTransmission(_address_l);
     _wire->write(MAX17332_CONFIG2_REG & 0xFF);
     _wire->write(0x00);         // write LSB
     _wire->write(0x80);         // write MSB

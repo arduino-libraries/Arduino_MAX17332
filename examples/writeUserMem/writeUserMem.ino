@@ -12,7 +12,7 @@ void setup() {
 
 void loop() {
     Serial.println("Initial user mem 1C6 value:");
-    Serial.println(BMS.readUserMem1C6());
+    Serial.println(BMS.readUserMem1C6(), HEX);
     Serial.println("Reading comm stat reg");
     Serial.println(BMS.readCommStat(), HEX);
     Serial.println("Writing 0xafbf to 1C6:");
