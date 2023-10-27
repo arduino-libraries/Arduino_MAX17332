@@ -275,3 +275,7 @@ uint16_t MAX17332::readUserMem1C6() {
     return val;
 
 }
+
+int MAX17332::shadowMemDump(uint8_t* data) {
+    return readRegisters(NVM_START_ADDRESS, data, NVM_SIZE);
+}

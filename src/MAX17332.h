@@ -46,12 +46,14 @@
 
 
 // CONSTANTS
-#define VOLTAGE_LSB     78.125e-6
-#define CURRENT_LSB     1.5625e-6
-#define RSENSE_LSB      1e-3
-#define RSENSE_DEFAULT  10e-3
-#define TEMP_LSB        0.00390625      //  1/256°C
-#define PERC_LSB        0.00390625      //  1/256%
+#define NVM_SIZE                    224             ///< bytes
+#define NVM_START_ADDRESS           0x180
+#define VOLTAGE_LSB                 78.125e-6
+#define CURRENT_LSB                 1.5625e-6
+#define RSENSE_LSB                  1e-3
+#define RSENSE_DEFAULT              10e-3
+#define TEMP_LSB                    0.00390625      ///<  1/256°C
+#define PERC_LSB                    0.00390625      ///<  1/256%
 
 
 class MAX17332 {
@@ -118,6 +120,13 @@ class MAX17332 {
             @brief  Reads the UserMem1C6 REG (0x1C6)
         */
         uint16_t readUserMem1C6();
+
+        /**
+            @brief  Dumps the contents of the shadow RAM (0x180 - 0x1EF) into the data array
+            @param  data uint8_t output data array. Must be of size NVM_SIZE
+            @return 1 if OK; -1 on transmission error; 0 if bytes received are less than length
+        */
+        int shadowMemDump(uint8_t* data);
 
     private:
         /**
