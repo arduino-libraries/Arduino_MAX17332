@@ -1,7 +1,7 @@
 {
   "name": "Arduino_MAX17332",
   "keywords": "Stand-alone charger, Fuel gauge, BMS",
-  "description": "A library for implementing all integer signal transofrms",
+  "description": "A library for driving MAX17332 BMS",
   "repository":
   {
     "type": "git",
