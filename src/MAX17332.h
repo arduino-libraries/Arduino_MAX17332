@@ -128,6 +128,13 @@ class MAX17332 {
         */
         int shadowMemDump(uint8_t* data);
 
+        /**
+            @brief  Writes data to the shadow RAM (0x180 - 0x1EF). Data is NOT flashed on the NVM
+            @param  data const uint8_t input data array. Must be of size NVM_SIZE
+            @return 1 if OK; -1 on transmission error; 0 if bytes received are less than length
+        */
+        int writeShadowMem(const uint8_t* data);
+
     private:
         /**
             @brief  Returns the right i2c slave address (H/L) according to location of reg_address
@@ -177,6 +184,15 @@ class MAX17332 {
             @return rgister content or -1 on transmission error
         */
         int writeRegister(uint16_t address, uint16_t value);
+
+        /**
+            @brief  Writes length bytes starting from address. Word bytes must be arranged LSB first
+            @param  address 9-bit address
+            @param  data uint8_t input data array [LSB, MSB, ...]
+            @param  length size of data (bytes) to write
+            @return 1 if OK; -1 on transmission error; 0 if bytes received are less than length
+        */
+        int writeRegisters(uint16_t address, const uint8_t* data, const uint32_t length);
 
     private:
         uint16_t _address_l;    ///< i2c address for low mem block

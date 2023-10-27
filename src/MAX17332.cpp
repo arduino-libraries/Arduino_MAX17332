@@ -95,6 +95,29 @@ int MAX17332::writeRegister(uint16_t address, uint16_t value)
     return 1;
 }
 
+int MAX17332::writeRegisters(uint16_t address, const uint8_t* data, const uint32_t length)
+{
+    freeMem();
+    uint8_t i2c_address = get_i2c_address(address);
+    _wire->beginTransmission(i2c_address);
+    _wire->write(address & 0xFF);
+
+    for (uint32_t i=0; i<length; i++) {
+        _wire->write(data[i]);
+    }
+
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
+
+    // Check for registers to be correctly written?
+
+    resetFirmware();
+    protectMem();
+
+    return 1;
+}
+
 int MAX17332::freeMem() {
 
     _wire->beginTransmission(_address_l);
@@ -278,4 +301,8 @@ uint16_t MAX17332::readUserMem1C6() {
 
 int MAX17332::shadowMemDump(uint8_t* data) {
     return readRegisters(NVM_START_ADDRESS, data, NVM_SIZE);
+}
+
+int MAX17332::writeShadowMem(const uint8_t* data) {
+    return writeRegisters(NVM_START_ADDRESS, data, NVM_SIZE);
 }
