@@ -1,7 +1,7 @@
 /*
 
 	Transform library
-	Copyright (C) 2023 Lucio Rossi
+	Copyright (C) 2023 Lucio Rossi, Giovanni Bruno
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -59,31 +59,119 @@ class MAX17332 {
         MAX17332(TwoWire& wire, uint16_t address_l=MAX17332_ADDRESS_L, uint16_t address_h=MAX17332_ADDRESS_H);
         ~MAX17332();
 
+        /**
+            @brief  MAX17332 startup operations
+        */
         void begin();
+
+        /**
+            @brief  MAX17332 cleanup operations
+        */
         void end();
 
+        /**
+            @brief  Returns the 2-bytes device name (0x4130)
+        */
         uint16_t readDevName();
+
+        /**
+            @brief  Returns the cell avg voltage from VCELLREP_REG (Volts)
+        */
         float readVCell();
+
+        /**
+            @brief  Returns the RSense value (mOhms)
+        */
         float readRSense();
+        
+        /**
+            @brief  Returns the battery avg current from CURRREP_REG (Amps)
+        */
         float readCurrent();
+        
+        /**
+            @brief  Returns the (thermistor or die) Temp (°C)
+        */
         float readTemp();
+        
+        /**
+            @brief  Returns the battery State Of Charge from REPSOC_REG (%)
+        */
         float readSoc();
+        
+        /**
+            @brief  Returns the battery State Of Charge from REPSOC_REG (%)
+        */
         int readLocks();
+        
+        /**
+            @brief  Reads the COMMSTAT_REG
+        */
         uint16_t readCommStat();
+        
+        /**
+            @brief  Writes value to the UserMem1C6 REG (0x1C6) (shadow RAM)
+        */
         int writeUserMem1C6(uint16_t value);
+
+        /**
+            @brief  Reads the UserMem1C6 REG (0x1C6)
+        */
         uint16_t readUserMem1C6();
 
     private:
+        /**
+            @brief  Returns the right i2c slave address (H/L) according to location of reg_address
+            @param  reg_address 9-bit address
+            @return i2c slave address to use
+        */
         uint8_t get_i2c_address(uint16_t reg_address);
+
+        /**
+            @brief  Removes memory write protection (COMMSTAT)
+            @return 1 if OK; 0 on transmission error
+        */
         int freeMem();
+
+        /**
+            @brief  Restores memory write protection (COMMSTAT)
+            @return 1 if OK; 0 on transmission error
+        */
         int protectMem();
+
+        /**
+            @brief  Initiates POR sequence and waits for completion (CONFIG2_REG POR_CMD bit)
+            @return 1 if OK; 0 on transmission error
+        */
         int resetFirmware();
+
+        /**
+            @brief  Reads register @address
+            @param  address 9-bit address
+            @return rgister content or -1 on transmission error
+        */
         int readRegister(uint16_t address);
+        
+        /**
+            @brief  Reads length bytes starting from address
+            @param  address 9-bit address
+            @param  data uint8_t output data array
+            @param  length size of data (bytes) to read
+            @return 1 if OK; -1 on transmission error; 0 if bytes received are less than length
+        */
         int readRegisters(uint16_t address, uint8_t* data, size_t length);
+
+        /**
+            @brief  Writes register @address
+            @param  address 9-bit address
+            @param  value the data word
+            @return rgister content or -1 on transmission error
+        */
         int writeRegister(uint16_t address, uint16_t value);
+
     private:
-        uint16_t _address_l;
-        uint16_t _address_h;
-        TwoWire* _wire;
+        uint16_t _address_l;    ///< i2c address for low mem block
+        uint16_t _address_h;    ///< i2c address for high mem block (shadow RAM)
+        TwoWire* _wire;         ///< Pointer to i2c interface
 
 };

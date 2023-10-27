@@ -1,7 +1,7 @@
 /*
 
 	Transform library
-	Copyright (C) 2023 Lucio Rossi
+	Copyright (C) 2023 Lucio Rossi, Giovanni Bruno
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by

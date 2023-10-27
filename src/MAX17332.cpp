@@ -1,7 +1,7 @@
 /*
 
 	Transform library
-	Copyright (C) 2023 Lucio Rossi
+	Copyright (C) 2023 Lucio Rossi, Giovanni Bruno
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -21,10 +21,7 @@
 #include "MAX17332.h"
 
 MAX17332::MAX17332(TwoWire& wire, uint16_t address_l, uint16_t address_h): _wire(&wire), _address_l(address_l), _address_h(address_h) {}
-
-MAX17332::~MAX17332()
-{
-}
+MAX17332::~MAX17332(){}
 
 void MAX17332::begin() {
     _wire->begin();
