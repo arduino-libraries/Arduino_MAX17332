@@ -7,7 +7,10 @@ MAX17332 BMS(WIRE);
 void setup() {
     Serial.begin(9600);
     while (!Serial);
-    BMS.begin();
+    if (!BMS.begin()) {
+        Serial.println("Failed to initialize BMS");
+        while(1);
+    }
 }
 
 void loop() {

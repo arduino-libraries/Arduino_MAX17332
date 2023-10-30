@@ -46,6 +46,7 @@
 
 
 // CONSTANTS
+#define MAX17332_DEVICE_NAME        0x4130
 #define NVM_SIZE                    224             ///< bytes
 #define NVM_START_ADDRESS           0x180
 #define VOLTAGE_LSB                 78.125e-6
@@ -63,8 +64,9 @@ class MAX17332 {
 
         /**
             @brief  MAX17332 startup operations
+            @return 1 if OK, 0 on error
         */
-        void begin();
+        int begin();
 
         /**
             @brief  MAX17332 cleanup operations
@@ -154,7 +156,7 @@ class MAX17332 {
             @return 1 if OK; 0 on transmission error
         */
         int protectMem();
-
+    
         /**
             @brief  Initiates POR sequence and waits for completion (CONFIG2_REG POR_CMD bit)
             @return 1 if OK; 0 on transmission error

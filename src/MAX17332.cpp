@@ -23,8 +23,15 @@
 MAX17332::MAX17332(TwoWire& wire, uint16_t address_l, uint16_t address_h): _wire(&wire), _address_l(address_l), _address_h(address_h) {}
 MAX17332::~MAX17332(){}
 
-void MAX17332::begin() {
+int MAX17332::begin() {
     _wire->begin();
+
+    if (readDevName() != MAX17332_DEVICE_NAME){
+        end();
+        return 0;
+    }
+
+    return 1;
 }
 
 void MAX17332::end() {
