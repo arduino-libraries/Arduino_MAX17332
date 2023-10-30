@@ -265,7 +265,13 @@ float MAX17332::readSoc()
 
 }
 
-int MAX17332::readLocks() {
+bool MAX17332::isCharging() {
+
+    return ((readFProtStat() & FPROTSTAT_ISDIS_MASK) == 0);
+
+}
+
+uint16_t MAX17332::readLocks() {
 
     uint16_t val;
 
@@ -281,6 +287,16 @@ uint16_t MAX17332::readCommStat() {
     uint16_t val;
 
     if (!readRegisters(MAX17332_COMMSTAT_REG, (uint8_t*) &val, sizeof(val))) {
+        return 0xffff;
+    }
+
+    return val;
+}
+
+uint16_t MAX17332::readFProtStat() {
+    uint16_t val;
+
+    if (!readRegisters(MAX17332_FPROTSTAT_REG, (uint8_t*) &val, sizeof(val))) {
         return 0xffff;
     }
 

@@ -37,13 +37,12 @@
 #define MAX17332_COMMSTAT_REG       0x061
 #define MAX17332_LOCK_REG           0x07F
 #define MAX17332_CONFIG2_REG        0x0AB
-
+#define MAX17332_FPROTSTAT_REG      0x0DA
 
 // REGISTERS USING MAX17332_ADDRESS_H
 #define MAX17332_RSENSE_REG         0x19C
 #define MAX17332_USERMEM_1C6        0x1C6
 #define MAX17332_USERMEM_1E0        0x1E0
-
 
 // CONSTANTS
 #define MAX17332_DEVICE_NAME        0x4130
@@ -56,6 +55,8 @@
 #define TEMP_LSB                    0.00390625      ///<  1/256°C
 #define PERC_LSB                    0.00390625      ///<  1/256%
 
+// MASKS
+#define FPROTSTAT_ISDIS_MASK       0b0000000000100000  ///<  Charging/Discharging state mask (IsDis bit on FPROTSTAT)
 
 class MAX17332 {
     public:
@@ -104,15 +105,25 @@ class MAX17332 {
         float readSoc();
         
         /**
-            @brief  Returns the battery State Of Charge from REPSOC_REG (%)
+            @brief  Uses readFProtStat. Returns true if battry is charging false if discharging.
         */
-        int readLocks();
+        bool isCharging();
+
+        /**
+            @brief  Reads the status of permanent locks in the LOCK_REG
+        */
+        uint16_t readLocks();
         
         /**
             @brief  Reads the COMMSTAT_REG
         */
         uint16_t readCommStat();
         
+        /**
+            @brief  Reads the FPROTSTAT_REG
+        */
+        uint16_t readFProtStat();
+
         /**
             @brief  Writes value to the UserMem1C6 REG (0x1C6) (shadow RAM)
         */
