@@ -24,5 +24,8 @@ void loop() {
     Serial.println(BMS.readTemp(), 4);
     Serial.println("STATE OF CHARGE %:");
     Serial.println(BMS.readSoc(), 4);
+
+    BMS.isCharging() ? Serial.println("BATTERY IS CHARGING") : Serial.println("BATTERY IS DISCHARGING");
+
     delay(500);
 }
