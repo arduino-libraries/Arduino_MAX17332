@@ -84,7 +84,6 @@ int MAX17332::readRegister(uint16_t address)
 
 int MAX17332::writeRegister(uint16_t address, uint16_t value)
 {
-    freeMem();
     uint8_t i2c_address = get_i2c_address(address);
     _wire->beginTransmission(i2c_address);
     _wire->write(address & 0xFF);
@@ -94,17 +93,11 @@ int MAX17332::writeRegister(uint16_t address, uint16_t value)
       return 0;
     }
 
-    // Check for register to be correctly written?
-
-    resetFirmware();
-    protectMem();
-
     return 1;
 }
 
 int MAX17332::writeRegisters(uint16_t address, const uint8_t* data, const uint32_t length)
 {
-    freeMem();
     uint8_t i2c_address = get_i2c_address(address);
     _wire->beginTransmission(i2c_address);
     _wire->write(address & 0xFF);
@@ -116,11 +109,6 @@ int MAX17332::writeRegisters(uint16_t address, const uint8_t* data, const uint32
     if (_wire->endTransmission() != 0) {
       return 0;
     }
-
-    // Check for registers to be correctly written?
-
-    resetFirmware();
-    protectMem();
 
     return 1;
 }
@@ -172,6 +160,62 @@ int MAX17332::protectMem() {
     return 1;
 }
 
+int MAX17332::writeNVM(const uint8_t* data) {
+
+    freeMem();
+
+    if (!writeRegisters(NVM_START_ADDRESS, data, NVM_SIZE)) {
+        return 0;
+    }
+
+    // Verify memory write
+
+    // Clear CommStat.NVError flag
+    _wire->beginTransmission(_address_l);
+    _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
+    _wire->write(0x00);         // write LSB
+    _wire->write(0x00);         // write MSB
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
+
+    // This initiates BLOCK COPY!!!
+    sendCommand(COPY_NV_BLOCK_CMD);
+
+    // Wait for tBLOCK
+    delay(TBLOCK);
+
+    // Wait for CommStat.NVBusy to clear
+    while ((readCommStat() & COMMSTAT_NVBUSY_MASK) != 0);
+
+    // Check CommStat.NVError flag
+    if ((readCommStat() & COMMSTAT_NVERROR_MASK) != 0) {
+        protectMem();
+        return -1;
+    }
+
+    // Hardware reset. Recall NVM content to the shadow RAM
+    resetHardware();
+
+    // Verify all of the nonvolatile memory locations are recalled correctly
+
+    // Write 0x0000 to the CommStat register (0x061) 3 times in a row to unlock Write Protection and clear NVError bit
+    freeMem();
+
+    _wire->beginTransmission(_address_l);
+    _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
+    _wire->write(0x00);         // write LSB
+    _wire->write(0x00);         // write MSB
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
+
+    resetFirmware();
+    protectMem();
+
+    return 1;
+}
+
 int MAX17332::resetFirmware() {
     _wire->beginTransmission(_address_l);
     _wire->write(MAX17332_CONFIG2_REG & 0xFF);
@@ -182,7 +226,18 @@ int MAX17332::resetFirmware() {
     }
 
     // Wait for POR_CMD bit to be cleared
-    while ((readRegister(MAX17332_CONFIG2_REG) & 0x8000) != 0) {}
+    while ((readRegister(MAX17332_CONFIG2_REG) & 0x8000) != 0);
+
+    return 1;
+}
+
+int MAX17332::resetHardware() {
+
+    if (!sendCommand(HARDWARE_RESET_CMD)) {
+        return 0;
+    }
+
+    delay(10);
 
     return 1;
 }
@@ -283,6 +338,12 @@ uint16_t MAX17332::readLocks() {
 
 }
 
+int MAX17332::sendCommand(uint16_t cmd) {
+
+    return writeRegister(MAX17332_COMMAND_REG, cmd);
+
+}
+
 uint16_t MAX17332::readCommStat() {
     uint16_t val;
 
@@ -307,7 +368,17 @@ int MAX17332::writeUserMem1C6(uint16_t value) {
     if (value == readUserMem1C6()) {
         return 1;
     }
-    return writeRegister(MAX17332_USERMEM_1C6, value);
+
+    freeMem();
+
+    if (!writeRegister(MAX17332_USERMEM_1C6, value)) {
+        return 0;
+    }
+
+    resetFirmware();
+    protectMem();
+
+    return 1;
 
 }
 
@@ -327,5 +398,15 @@ int MAX17332::shadowMemDump(uint8_t* data) {
 }
 
 int MAX17332::writeShadowMem(const uint8_t* data) {
-    return writeRegisters(NVM_START_ADDRESS, data, NVM_SIZE);
+
+    freeMem();
+
+    if (!writeRegisters(NVM_START_ADDRESS, data, NVM_SIZE)) {
+        return 0;
+    }
+
+    resetFirmware();
+    protectMem();
+
+    return 1;
 }

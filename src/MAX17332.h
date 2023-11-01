@@ -34,6 +34,7 @@
 #define MAX17332_TEMP_REG           0x01B
 #define MAX17332_AVSOC_REG          0x00E
 #define MAX17332_REPSOC_REG         0x006
+#define MAX17332_COMMAND_REG        0x060
 #define MAX17332_COMMSTAT_REG       0x061
 #define MAX17332_LOCK_REG           0x07F
 #define MAX17332_CONFIG2_REG        0x0AB
@@ -48,6 +49,7 @@
 #define MAX17332_DEVICE_NAME        0x4130
 #define NVM_SIZE                    224             ///< bytes
 #define NVM_START_ADDRESS           0x180
+#define TBLOCK                      7500            ///< Block programming time (max is 7360 according to datasheet)
 #define VOLTAGE_LSB                 78.125e-6
 #define CURRENT_LSB                 1.5625e-6
 #define RSENSE_LSB                  1e-3
@@ -55,8 +57,16 @@
 #define TEMP_LSB                    0.00390625      ///<  1/256°C
 #define PERC_LSB                    0.00390625      ///<  1/256%
 
+// COMMANDS
+#define COPY_NV_BLOCK_CMD           0xE904          ///< Copy shadow RAM to NVM
+#define NV_RECALL_CMD               0xE001          ///< Recall NVM to RAM
+#define HARDWARE_RESET_CMD          0x000F          ///< Recalls nonvolatile memory into RAM and resets the IC hardware
+
 // MASKS
-#define FPROTSTAT_ISDIS_MASK       0b0000000000100000  ///<  Charging/Discharging state mask (IsDis bit on FPROTSTAT)
+#define FPROTSTAT_ISDIS_MASK        0b0000000000100000  ///<  Charging/Discharging state mask (IsDis bit on FPROTSTAT)
+#define COMMSTAT_NVBUSY_MASK        0b0000000000000010  ///< CommStat.NVBusy flag
+#define COMMSTAT_NVERROR_MASK       0b0000000000000100  ///< CommStat.NVError flag
+
 
 class MAX17332 {
     public:
@@ -115,6 +125,11 @@ class MAX17332 {
         uint16_t readLocks();
         
         /**
+            @brief  Sends a command to COMMAND_REG
+        */
+        int sendCommand(uint16_t cmd);
+
+        /**
             @brief  Reads the COMMSTAT_REG
         */
         uint16_t readCommStat();
@@ -169,6 +184,13 @@ class MAX17332 {
         int protectMem();
     
         /**
+            @brief  Flashes data to the NVM (0x180 - 0x1EF). NVM is limited to seven writes maximum. Use at own risk. Verification is not implemented
+            @param  data const uint8_t input data array. Must be of size NVM_SIZE
+            @return 1 if OK; -1 if NVError; 0 on transmission error
+        */
+        int writeNVM(const uint8_t* data);
+
+        /**
             @brief  Initiates POR sequence and waits for completion (CONFIG2_REG POR_CMD bit)
             @return 1 if OK; 0 on transmission error
         */
@@ -191,7 +213,7 @@ class MAX17332 {
         int readRegisters(uint16_t address, uint8_t* data, size_t length);
 
         /**
-            @brief  Writes register @address
+            @brief  Writes register @address. For some registers mem should be freed in advance
             @param  address 9-bit address
             @param  value the data word
             @return rgister content or -1 on transmission error
@@ -199,11 +221,11 @@ class MAX17332 {
         int writeRegister(uint16_t address, uint16_t value);
 
         /**
-            @brief  Writes length bytes starting from address. Word bytes must be arranged LSB first
+            @brief  Writes length bytes starting from address. Word bytes must be arranged LSB first. For some registers mem should be freed in advance
             @param  address 9-bit address
             @param  data uint8_t input data array [LSB, MSB, ...]
             @param  length size of data (bytes) to write
-            @return 1 if OK; -1 on transmission error; 0 if bytes received are less than length
+            @return 1 if OK; 0 on transmission error
         */
         int writeRegisters(uint16_t address, const uint8_t* data, const uint32_t length);
 
