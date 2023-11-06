@@ -197,6 +197,12 @@ class MAX17332 {
         int resetFirmware();
 
         /**
+            @brief  Write 0x000F to the Command register 0x060 to POR the IC
+            @return 1 if OK; 0 on transmission error
+        */
+        int resetHardware();
+
+        /**
             @brief  Reads register @address
             @param  address 9-bit address
             @return rgister content or -1 on transmission error
