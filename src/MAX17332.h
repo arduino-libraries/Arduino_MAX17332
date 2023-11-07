@@ -1,6 +1,6 @@
 /*
 
-	Transform library
+	Arduino MAX17332 library
 	Copyright (C) 2023 Lucio Rossi, Giovanni Bruno
 
 	This program is free software: you can redistribute it and/or modify
@@ -17,6 +17,9 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
+
+#ifndef  _MAX17332_H_
+#define  _MAX17332_H_
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -163,6 +166,11 @@ class MAX17332 {
         */
         int writeShadowMem(const uint8_t* data);
 
+        /**
+            This declares MAX17332_Programmer as a friend class
+        */
+        friend class MAX17332_Programmer;
+
     private:
         /**
             @brief  Returns the right i2c slave address (H/L) according to location of reg_address
@@ -241,3 +249,5 @@ class MAX17332 {
         TwoWire* _wire;         ///< Pointer to i2c interface
 
 };
+
+#endif
