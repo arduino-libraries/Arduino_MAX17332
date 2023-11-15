@@ -38,6 +38,14 @@ void MAX17332::end() {
     _wire->end();
 }
 
+void MAX17332::update() {
+    status.status_reg =  readRegister(MAX17332_STATUS_REG);
+    status.f_prot_stat = readRegister(MAX17332_FPROTSTAT_REG);
+    status.n_batt_status = readRegister(MAX17332_N_BATT_STATUS_REG);
+    status.prot_status = readRegister(MAX17332_PROT_STATUS_REG);
+    status.prot_alrt = readRegister(MAX17332_PROT_ALRT_REG);
+}
+
 uint8_t MAX17332::get_i2c_address(uint16_t reg_address)
 {
 
@@ -326,6 +334,12 @@ bool MAX17332::isCharging() {
 
 }
 
+bool MAX17332::isPermFail() {
+
+    return ((readnBattStatus() & NBATTSTATUS_PERMFAIL_MASK) == 1);
+
+}
+
 uint16_t MAX17332::readLocks() {
 
     uint16_t val;
@@ -358,6 +372,16 @@ uint16_t MAX17332::readFProtStat() {
     uint16_t val;
 
     if (!readRegisters(MAX17332_FPROTSTAT_REG, (uint8_t*) &val, sizeof(val))) {
+        return 0xffff;
+    }
+
+    return val;
+}
+
+uint16_t MAX17332::readnBattStatus() {
+    uint16_t val;
+
+    if (!readRegisters(MAX17332_N_BATT_STATUS_REG, (uint8_t*) &val, sizeof(val))) {
         return 0xffff;
     }
 

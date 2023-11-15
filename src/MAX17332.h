@@ -29,6 +29,7 @@
 #define MAX17332_ADDRESS_H          0x0B
 
 // REGISTERS USING MAX17332_ADDRESS_L
+#define MAX17332_STATUS_REG         0x000
 #define MAX17332_VCELL_REG          0x01A
 #define MAX17332_VCELLREP_REG       0x012
 #define MAX17332_CURR_REG           0x01C
@@ -42,8 +43,11 @@
 #define MAX17332_LOCK_REG           0x07F
 #define MAX17332_CONFIG2_REG        0x0AB
 #define MAX17332_FPROTSTAT_REG      0x0DA
+#define MAX17332_PROT_STATUS_REG    0x0D9
+#define MAX17332_PROT_ALRT_REG      0x0AF
 
 // REGISTERS USING MAX17332_ADDRESS_H
+#define MAX17332_N_BATT_STATUS_REG  0x1A8
 #define MAX17332_RSENSE_REG         0x19C
 #define MAX17332_USERMEM_1C6        0x1C6
 #define MAX17332_USERMEM_1E0        0x1E0
@@ -66,9 +70,24 @@
 #define HARDWARE_RESET_CMD          0x000F          ///< Recalls nonvolatile memory into RAM and resets the IC hardware
 
 // MASKS
-#define FPROTSTAT_ISDIS_MASK        0b0000000000100000  ///<  Charging/Discharging state mask (IsDis bit on FPROTSTAT)
+#define FPROTSTAT_ISDIS_MASK        0b0000000000100000  ///< Charging/Discharging state mask (IsDis bit on FPROTSTAT)
+#define NBATTSTATUS_PERMFAIL_MASK   0b1000000000000000  ///< Permanent battery failure mask
 #define COMMSTAT_NVBUSY_MASK        0b0000000000000010  ///< CommStat.NVBusy flag
 #define COMMSTAT_NVERROR_MASK       0b0000000000000100  ///< CommStat.NVError flag
+
+
+/**
+ * Struct for storing MAX17332 complex status
+*/
+typedef struct
+{
+    int status_reg;
+    int f_prot_stat;
+    int n_batt_status;
+    int prot_status;
+    int prot_alrt;
+
+} MAX17332_Status;
 
 
 class MAX17332 {
@@ -86,6 +105,11 @@ class MAX17332 {
             @brief  MAX17332 cleanup operations
         */
         void end();
+
+        /**
+            @brief  MAX17332 status update
+        */
+        void update();
 
         /**
             @brief  Returns the 2-bytes device name (0x4130)
@@ -118,6 +142,11 @@ class MAX17332 {
         float readSoc();
         
         /**
+            @brief  Uses readnBattStatus. Returns true if battry is in permanent fail status.
+        */
+        bool isPermFail();
+
+        /**
             @brief  Uses readFProtStat. Returns true if battry is charging false if discharging.
         */
         bool isCharging();
@@ -141,6 +170,11 @@ class MAX17332 {
             @brief  Reads the FPROTSTAT_REG
         */
         uint16_t readFProtStat();
+
+        /**
+            @brief  Reads the N_BATT_STATUS_REG
+        */
+        uint16_t readnBattStatus();
 
         /**
             @brief  Writes value to the UserMem1C6 REG (0x1C6) (shadow RAM)
@@ -242,6 +276,9 @@ class MAX17332 {
             @return 1 if OK; 0 on transmission error
         */
         int writeRegisters(uint16_t address, const uint8_t* data, const uint32_t length);
+
+    public:
+        MAX17332_Status status;
 
     private:
         uint16_t _address_l;    ///< i2c address for low mem block
