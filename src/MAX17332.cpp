@@ -435,6 +435,15 @@ uint16_t MAX17332::readStatus() {
     return val;
 }
 
+void MAX17332::clearStatus() {
+
+    freeMem();
+    writeRegister(MAX17332_PROT_ALRT_REG, 0x0000);
+    writeRegister(MAX17332_STATUS_REG, 0b0000000000000000);
+    protectMem();
+
+}
+
 uint16_t MAX17332::readCommStat() {
     uint16_t val;
 

@@ -240,6 +240,11 @@ class MAX17332 {
         uint16_t readStatus();
 
         /**
+            @brief  Clears the STATUS_REG
+        */
+        void clearStatus();
+
+        /**
             @brief  Reads the FPROTSTAT_REG
         */
         uint16_t readFProtStat();
