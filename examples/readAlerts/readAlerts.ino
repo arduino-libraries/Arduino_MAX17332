@@ -26,5 +26,16 @@ void loop() {
     BMS.isOverSOC() ? Serial.println("BMS OS ALERT") : Serial.println("OS OK");
     BMS.isUnderSOC() ? Serial.println("BMS US ALERT") : Serial.println("US OK");
 
+    BMS.update();
+    
+    if (BMS.hasAlerts()) {
+        Serial.println("STATUS");
+        Serial.println(BMS.status.status_reg, BIN);
+        Serial.println("PROTECTION ALERT");
+        Serial.println(BMS.status.prot_alrt, BIN);
+        Serial.println("CHARGING STATUS");
+        Serial.println(BMS.status.chg_stat, BIN);
+    }
+
     delay(500);
 }
