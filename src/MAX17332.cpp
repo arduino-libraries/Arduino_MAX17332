@@ -44,6 +44,7 @@ void MAX17332::update() {
     status.n_batt_status = readRegister(MAX17332_N_BATT_STATUS_REG);
     status.prot_status = readRegister(MAX17332_PROT_STATUS_REG);
     status.prot_alrt = readRegister(MAX17332_PROT_ALRT_REG);
+    status.chg_stat = readRegister(MAX17332_CHGSTAT_REG);
 }
 
 uint8_t MAX17332::get_i2c_address(uint16_t reg_address)
@@ -430,9 +431,6 @@ uint16_t MAX17332::readStatus() {
     if (!readRegisters(MAX17332_STATUS_REG, (uint8_t*) &val, sizeof(val))) {
         return 0xffff;
     }
-
-    Serial.println("STATUS:");
-    Serial.println(val, BIN);
 
     return val;
 }

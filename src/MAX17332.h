@@ -45,6 +45,7 @@
 #define MAX17332_FPROTSTAT_REG      0x0DA
 #define MAX17332_PROT_STATUS_REG    0x0D9
 #define MAX17332_PROT_ALRT_REG      0x0AF
+#define MAX17332_CHGSTAT_REG        0x0A3
 
 // REGISTERS USING MAX17332_ADDRESS_H
 #define MAX17332_N_BATT_STATUS_REG  0x1A8
@@ -97,6 +98,7 @@ typedef struct
     int n_batt_status;
     int prot_status;
     int prot_alrt;
+    int chg_stat;
 
 } MAX17332_Status;
 
