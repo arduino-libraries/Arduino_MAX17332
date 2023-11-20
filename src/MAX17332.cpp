@@ -336,7 +336,73 @@ bool MAX17332::isCharging() {
 
 bool MAX17332::isPermFail() {
 
-    return ((readnBattStatus() & NBATTSTATUS_PERMFAIL_MASK) == 1);
+    return ((readnBattStatus() & NBATTSTATUS_PERMFAIL_MASK) != 0);
+
+}
+
+bool MAX17332::hasAlerts() {
+
+    return ((readStatus() & STATUS_ALERT_MASK) != 0);
+
+}
+
+bool MAX17332::isOverVoltage() {
+
+    return ((readStatus() & STATUS_OVERVOLTAGE_MASK) != 0);
+
+}
+
+bool MAX17332::isUnderVoltage() {
+
+    return ((readStatus() & STATUS_UNDERVOLTAGE_MASK) != 0);
+
+}
+
+bool MAX17332::isOverCurrent() {
+
+    return ((readStatus() & STATUS_OVERCURRENT_MASK) != 0);
+
+}
+
+bool MAX17332::isUnderCurrent() {
+
+    return ((readStatus() & STATUS_UNDERCURRENT_MASK) != 0);
+
+}
+
+bool MAX17332::isOverTemperature() {
+
+    return ((readStatus() & STATUS_OVERTEMP_MASK) != 0);
+
+}
+
+bool MAX17332::isUnderTemperature() {
+
+    return ((readStatus() & STATUS_UNDERTEMP_MASK) != 0);
+
+}
+
+bool MAX17332::isOverSOC() {
+
+    return ((readStatus() & STATUS_OVERSOC_MASK) != 0);
+
+}
+
+bool MAX17332::isUnderSOC() {
+
+    return ((readStatus() & STATUS_UNDERSOC_MASK) != 0);
+
+}
+
+bool MAX17332::isProtectionAlert() {
+
+    return ((readStatus() & STATUS_PROTECTIONALERT_MASK) != 0);
+
+}
+
+bool MAX17332::isChargingAlert() {
+
+    return ((readStatus() & STATUS_CHARGINGALERT_MASK) != 0);
 
 }
 
@@ -356,6 +422,19 @@ int MAX17332::sendCommand(uint16_t cmd) {
 
     return writeRegister(MAX17332_COMMAND_REG, cmd);
 
+}
+
+uint16_t MAX17332::readStatus() {
+    uint16_t val;
+
+    if (!readRegisters(MAX17332_STATUS_REG, (uint8_t*) &val, sizeof(val))) {
+        return 0xffff;
+    }
+
+    Serial.println("STATUS:");
+    Serial.println(val, BIN);
+
+    return val;
 }
 
 uint16_t MAX17332::readCommStat() {

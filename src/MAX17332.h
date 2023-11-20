@@ -74,7 +74,18 @@
 #define NBATTSTATUS_PERMFAIL_MASK   0b1000000000000000  ///< Permanent battery failure mask
 #define COMMSTAT_NVBUSY_MASK        0b0000000000000010  ///< CommStat.NVBusy flag
 #define COMMSTAT_NVERROR_MASK       0b0000000000000100  ///< CommStat.NVError flag
-
+#define STATUS_OVERVOLTAGE_MASK     0b0001000000000000  ///< Status.Vmx
+#define STATUS_UNDERVOLTAGE_MASK    0b0000000100000000  ///< Status.Vmn
+#define STATUS_OVERCURRENT_MASK     0b0000000001000000  ///< Status.Imx
+#define STATUS_UNDERCURRENT_MASK    0b0000000000000100  ///< Status.Imn
+#define STATUS_OVERTEMP_MASK        0b0010000000000000  ///< Status.Tmx
+#define STATUS_UNDERTEMP_MASK       0b0000001000000000  ///< Status.Tmn
+#define STATUS_OVERSOC_MASK         0b0100000000000000  ///< Status.Smx
+#define STATUS_UNDERSOC_MASK        0b0000010000000000  ///< Status.Smn
+#define STATUS_SOCCHANGE_MASK       0b0000000010000000  ///< Status.dSOCi
+#define STATUS_PROTECTIONALERT_MASK 0b1000000000000000  ///< Status.PA
+#define STATUS_CHARGINGALERT_MASK   0b0000100000000000  ///< Status.CA
+#define STATUS_ALERT_MASK           0b1111111101000100  ///< Status all alerts (OV OC OT OS CA PA UV UC UT US)
 
 /**
  * Struct for storing MAX17332 complex status
@@ -152,6 +163,61 @@ class MAX17332 {
         bool isCharging();
 
         /**
+            @brief  Uses readStatus. Returns true if battry status reg 0x000 has any alert bit set.
+        */
+        bool hasAlerts();
+
+        /**
+            @brief  Uses readStatus. Returns true if battry is in OV Alert.
+        */
+        bool isOverVoltage();
+
+        /**
+            @brief  Uses readStatus. Returns true if battry is in UV Alert.
+        */
+        bool isUnderVoltage();
+
+        /**
+            @brief  Uses readStatus. Returns true if battry is in OC Alert.
+        */
+        bool isOverCurrent();
+
+        /**
+            @brief  Uses readStatus. Returns true if battry is in UC Alert.
+        */
+        bool isUnderCurrent();
+
+        /**
+            @brief  Uses readStatus. Returns true if battry is in OT Alert.
+        */
+        bool isOverTemperature();
+
+        /**
+            @brief  Uses readStatus. Returns true if battry is in UT Alert.
+        */
+        bool isUnderTemperature();
+
+        /**
+            @brief  Uses readStatus. Returns true if battry is in OS Alert.
+        */
+        bool isOverSOC();
+
+        /**
+            @brief  Uses readStatus. Returns true if battry is in US Alert.
+        */
+        bool isUnderSOC();
+
+        /**
+            @brief  Uses readStatus. Returns true if battry is in PA Alert.
+        */
+        bool isProtectionAlert();
+
+        /**
+            @brief  Uses readStatus. Returns true if battry is in CA Alert.
+        */
+        bool isChargingAlert();
+
+        /**
             @brief  Reads the status of permanent locks in the LOCK_REG
         */
         uint16_t readLocks();
@@ -166,6 +232,11 @@ class MAX17332 {
         */
         uint16_t readCommStat();
         
+        /**
+            @brief  Reads the STATUS_REG
+        */
+        uint16_t readStatus();
+
         /**
             @brief  Reads the FPROTSTAT_REG
         */
