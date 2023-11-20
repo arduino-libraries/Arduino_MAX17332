@@ -81,9 +81,9 @@ int MAX17332::readRegisters(uint16_t address, uint8_t* data, size_t length)
 
 int MAX17332::readRegister(uint16_t address)
 {
-    uint8_t value;
+    uint16_t value;
 
-    if (readRegisters(address, &value, sizeof(value)) != 1) {
+    if (readRegisters(address, (uint8_t*) &value, sizeof(value)) != 1) {
         return -1;
     }
 
