@@ -18,10 +18,27 @@
 
 */
 
-#ifndef  _ARUDINO_MAX17332_H_
-#define  _ARUDINO_MAX17332_H_
+#ifndef  _MAX17332_PROGRAMMER_H_
+#define  _MAX17332_PROGRAMMER_H_
 
 #include "MAX17332.h"
-#include "MAX17332_Programmer.h"
+
+class MAX17332_Programmer {
+
+    public:
+        MAX17332_Programmer(MAX17332& bms);
+        ~MAX17332_Programmer();
+
+        /**
+            @brief  Exposes MAX17332::writeNVM protected method. NVM is limited to seven writes maximum. Use at own risk!
+            @param  data const uint8_t input data array. Must be of size NVM_SIZE
+            @return 1 if OK; -1 if NVError; 0 on transmission error
+        */
+        int writeNVM(const uint8_t* data);
+
+    private:
+        MAX17332* _bms;
+
+};
 
 #endif

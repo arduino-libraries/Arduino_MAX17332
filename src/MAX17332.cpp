@@ -1,6 +1,6 @@
 /*
 
-	Transform library
+	Arduino MAX17332 library
 	Copyright (C) 2023 Lucio Rossi, Giovanni Bruno
 
 	This program is free software: you can redistribute it and/or modify
@@ -23,12 +23,28 @@
 MAX17332::MAX17332(TwoWire& wire, uint16_t address_l, uint16_t address_h): _wire(&wire), _address_l(address_l), _address_h(address_h) {}
 MAX17332::~MAX17332(){}
 
-void MAX17332::begin() {
+int MAX17332::begin() {
     _wire->begin();
+
+    if (readDevName() != MAX17332_DEVICE_NAME){
+        end();
+        return 0;
+    }
+
+    return 1;
 }
 
 void MAX17332::end() {
     _wire->end();
+}
+
+void MAX17332::update() {
+    status.status_reg =  readRegister(MAX17332_STATUS_REG);
+    status.f_prot_stat = readRegister(MAX17332_FPROTSTAT_REG);
+    status.n_batt_status = readRegister(MAX17332_N_BATT_STATUS_REG);
+    status.prot_status = readRegister(MAX17332_PROT_STATUS_REG);
+    status.prot_alrt = readRegister(MAX17332_PROT_ALRT_REG);
+    status.chg_stat = readRegister(MAX17332_CHGSTAT_REG);
 }
 
 uint8_t MAX17332::get_i2c_address(uint16_t reg_address)
@@ -66,9 +82,9 @@ int MAX17332::readRegisters(uint16_t address, uint8_t* data, size_t length)
 
 int MAX17332::readRegister(uint16_t address)
 {
-    uint8_t value;
+    uint16_t value;
 
-    if (readRegisters(address, &value, sizeof(value)) != 1) {
+    if (readRegisters(address, (uint8_t*) &value, sizeof(value)) != 1) {
         return -1;
     }
 
@@ -77,7 +93,6 @@ int MAX17332::readRegister(uint16_t address)
 
 int MAX17332::writeRegister(uint16_t address, uint16_t value)
 {
-    freeMem();
     uint8_t i2c_address = get_i2c_address(address);
     _wire->beginTransmission(i2c_address);
     _wire->write(address & 0xFF);
@@ -87,10 +102,22 @@ int MAX17332::writeRegister(uint16_t address, uint16_t value)
       return 0;
     }
 
-    // Check for register to be correctly written?
+    return 1;
+}
 
-    resetFirmware();
-    protectMem();
+int MAX17332::writeRegisters(uint16_t address, const uint8_t* data, const uint32_t length)
+{
+    uint8_t i2c_address = get_i2c_address(address);
+    _wire->beginTransmission(i2c_address);
+    _wire->write(address & 0xFF);
+
+    for (uint32_t i=0; i<length; i++) {
+        _wire->write(data[i]);
+    }
+
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
 
     return 1;
 }
@@ -142,6 +169,62 @@ int MAX17332::protectMem() {
     return 1;
 }
 
+int MAX17332::writeNVM(const uint8_t* data) {
+
+    freeMem();
+
+    if (!writeRegisters(NVM_START_ADDRESS, data, NVM_SIZE)) {
+        return 0;
+    }
+
+    // Verify memory write
+
+    // Clear CommStat.NVError flag
+    _wire->beginTransmission(_address_l);
+    _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
+    _wire->write(0x00);         // write LSB
+    _wire->write(0x00);         // write MSB
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
+
+    // This initiates BLOCK COPY!!!
+    sendCommand(COPY_NV_BLOCK_CMD);
+
+    // Wait for tBLOCK
+    delay(TBLOCK);
+
+    // Wait for CommStat.NVBusy to clear
+    while ((readCommStat() & COMMSTAT_NVBUSY_MASK) != 0);
+
+    // Check CommStat.NVError flag
+    if ((readCommStat() & COMMSTAT_NVERROR_MASK) != 0) {
+        protectMem();
+        return -1;
+    }
+
+    // Hardware reset. Recall NVM content to the shadow RAM
+    resetHardware();
+
+    // Verify all of the nonvolatile memory locations are recalled correctly
+
+    // Write 0x0000 to the CommStat register (0x061) 3 times in a row to unlock Write Protection and clear NVError bit
+    freeMem();
+
+    _wire->beginTransmission(_address_l);
+    _wire->write(MAX17332_COMMSTAT_REG & 0xFF);
+    _wire->write(0x00);         // write LSB
+    _wire->write(0x00);         // write MSB
+    if (_wire->endTransmission() != 0) {
+      return 0;
+    }
+
+    resetFirmware();
+    protectMem();
+
+    return 1;
+}
+
 int MAX17332::resetFirmware() {
     _wire->beginTransmission(_address_l);
     _wire->write(MAX17332_CONFIG2_REG & 0xFF);
@@ -152,7 +235,18 @@ int MAX17332::resetFirmware() {
     }
 
     // Wait for POR_CMD bit to be cleared
-    while ((readRegister(MAX17332_CONFIG2_REG) & 0x8000) != 0) {}
+    while ((readRegister(MAX17332_CONFIG2_REG) & 0x8000) != 0);
+
+    return 1;
+}
+
+int MAX17332::resetHardware() {
+
+    if (!sendCommand(HARDWARE_RESET_CMD)) {
+        return 0;
+    }
+
+    delay(10);
 
     return 1;
 }
@@ -235,7 +329,85 @@ float MAX17332::readSoc()
 
 }
 
-int MAX17332::readLocks() {
+bool MAX17332::isCharging() {
+
+    return ((readFProtStat() & FPROTSTAT_ISDIS_MASK) == 0);
+
+}
+
+bool MAX17332::isPermFail() {
+
+    return ((readnBattStatus() & NBATTSTATUS_PERMFAIL_MASK) != 0);
+
+}
+
+bool MAX17332::hasAlerts() {
+
+    return ((readStatus() & STATUS_ALERT_MASK) != 0);
+
+}
+
+bool MAX17332::isOverVoltage() {
+
+    return ((readStatus() & STATUS_OVERVOLTAGE_MASK) != 0);
+
+}
+
+bool MAX17332::isUnderVoltage() {
+
+    return ((readStatus() & STATUS_UNDERVOLTAGE_MASK) != 0);
+
+}
+
+bool MAX17332::isOverCurrent() {
+
+    return ((readStatus() & STATUS_OVERCURRENT_MASK) != 0);
+
+}
+
+bool MAX17332::isUnderCurrent() {
+
+    return ((readStatus() & STATUS_UNDERCURRENT_MASK) != 0);
+
+}
+
+bool MAX17332::isOverTemperature() {
+
+    return ((readStatus() & STATUS_OVERTEMP_MASK) != 0);
+
+}
+
+bool MAX17332::isUnderTemperature() {
+
+    return ((readStatus() & STATUS_UNDERTEMP_MASK) != 0);
+
+}
+
+bool MAX17332::isOverSOC() {
+
+    return ((readStatus() & STATUS_OVERSOC_MASK) != 0);
+
+}
+
+bool MAX17332::isUnderSOC() {
+
+    return ((readStatus() & STATUS_UNDERSOC_MASK) != 0);
+
+}
+
+bool MAX17332::isProtectionAlert() {
+
+    return ((readStatus() & STATUS_PROTECTIONALERT_MASK) != 0);
+
+}
+
+bool MAX17332::isChargingAlert() {
+
+    return ((readStatus() & STATUS_CHARGINGALERT_MASK) != 0);
+
+}
+
+uint16_t MAX17332::readLocks() {
 
     uint16_t val;
 
@@ -244,6 +416,31 @@ int MAX17332::readLocks() {
     }
 
     return val;
+
+}
+
+int MAX17332::sendCommand(uint16_t cmd) {
+
+    return writeRegister(MAX17332_COMMAND_REG, cmd);
+
+}
+
+uint16_t MAX17332::readStatus() {
+    uint16_t val;
+
+    if (!readRegisters(MAX17332_STATUS_REG, (uint8_t*) &val, sizeof(val))) {
+        return 0xffff;
+    }
+
+    return val;
+}
+
+void MAX17332::clearStatus() {
+
+    freeMem();
+    writeRegister(MAX17332_PROT_ALRT_REG, 0x0000);
+    writeRegister(MAX17332_STATUS_REG, 0b0000000000000000);
+    protectMem();
 
 }
 
@@ -257,11 +454,41 @@ uint16_t MAX17332::readCommStat() {
     return val;
 }
 
+uint16_t MAX17332::readFProtStat() {
+    uint16_t val;
+
+    if (!readRegisters(MAX17332_FPROTSTAT_REG, (uint8_t*) &val, sizeof(val))) {
+        return 0xffff;
+    }
+
+    return val;
+}
+
+uint16_t MAX17332::readnBattStatus() {
+    uint16_t val;
+
+    if (!readRegisters(MAX17332_N_BATT_STATUS_REG, (uint8_t*) &val, sizeof(val))) {
+        return 0xffff;
+    }
+
+    return val;
+}
+
 int MAX17332::writeUserMem1C6(uint16_t value) {
     if (value == readUserMem1C6()) {
         return 1;
     }
-    return writeRegister(MAX17332_USERMEM_1C6, value);
+
+    freeMem();
+
+    if (!writeRegister(MAX17332_USERMEM_1C6, value)) {
+        return 0;
+    }
+
+    resetFirmware();
+    protectMem();
+
+    return 1;
 
 }
 
@@ -278,4 +505,18 @@ uint16_t MAX17332::readUserMem1C6() {
 
 int MAX17332::shadowMemDump(uint8_t* data) {
     return readRegisters(NVM_START_ADDRESS, data, NVM_SIZE);
+}
+
+int MAX17332::writeShadowMem(const uint8_t* data) {
+
+    freeMem();
+
+    if (!writeRegisters(NVM_START_ADDRESS, data, NVM_SIZE)) {
+        return 0;
+    }
+
+    resetFirmware();
+    protectMem();
+
+    return 1;
 }

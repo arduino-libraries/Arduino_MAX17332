@@ -18,10 +18,11 @@
 
 */
 
-#ifndef  _ARUDINO_MAX17332_H_
-#define  _ARUDINO_MAX17332_H_
-
-#include "MAX17332.h"
 #include "MAX17332_Programmer.h"
 
-#endif
+MAX17332_Programmer::MAX17332_Programmer(MAX17332& bms): _bms(&bms){}
+MAX17332_Programmer::~MAX17332_Programmer(){}
+
+int MAX17332_Programmer::writeNVM(const uint8_t* data) {
+    return _bms->writeNVM(data);
+}
