@@ -20,7 +20,7 @@
       "maintainer": true
     }
   ],
-  "version": "0.1",
+  "version": "1.0.0",
   "frameworks": ["arduino"],
   "platforms": "*",
   "headers": "Arduino_MAX17332.h"
