@@ -264,6 +264,13 @@ class MAX17332 {
         int shadowMemDump(uint8_t* data);
 
         /**
+            @brief  Compares input array with Shadow RAM content
+            @param  data uint8_t output data array. Must be of size NVM_SIZE
+            @return 1 if content is equal to input; 0 if they differ; -1 on error
+        */
+        int compareWithMem(const uint8_t* data);
+
+        /**
             @brief  Writes data to the shadow RAM (0x180 - 0x1EF). Data is NOT flashed on the NVM
             @param  data const uint8_t input data array. Must be of size NVM_SIZE
             @return 1 if OK; -1 on transmission error; 0 if bytes received are less than length
@@ -298,7 +305,7 @@ class MAX17332 {
         /**
             @brief  Flashes data to the NVM (0x180 - 0x1EF). NVM is limited to seven writes maximum. Use at own risk. Verification is not implemented
             @param  data const uint8_t input data array. Must be of size NVM_SIZE
-            @return 1 if OK; -1 if NVError; 0 on transmission error
+            @return 1 if OK; 0 on transmission error; -1 on NVError; -2 on verification error
         */
         int writeNVM(const uint8_t* data);
 

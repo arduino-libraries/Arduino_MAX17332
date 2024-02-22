@@ -163,6 +163,10 @@ int MAX17332::protectMem() {
 
 int MAX17332::writeNVM(const uint8_t* data) {
 
+    if (compareWithMem(data) == 1) {
+        return 2;
+    }
+
     freeMem();
 
     if (!writeRegisters(NVM_START_ADDRESS, data, NVM_SIZE)) {
@@ -191,6 +195,7 @@ int MAX17332::writeNVM(const uint8_t* data) {
 
     // Check CommStat.NVError flag
     if ((readCommStat() & COMMSTAT_NVERROR_MASK) != 0) {
+        resetFirmware();
         protectMem();
         return -1;
     }
@@ -199,6 +204,11 @@ int MAX17332::writeNVM(const uint8_t* data) {
     resetHardware();
 
     // Verify all of the nonvolatile memory locations are recalled correctly
+    if (compareWithMem(data) == 0) {
+        resetFirmware();
+        protectMem();
+        return -2;
+    }
 
     // Write 0x0000 to the CommStat register (0x061) 3 times in a row to unlock Write Protection and clear NVError bit
     freeMem();
@@ -497,6 +507,23 @@ uint16_t MAX17332::readUserMem1C6() {
 
 int MAX17332::shadowMemDump(uint8_t* data) {
     return readRegisters(NVM_START_ADDRESS, data, NVM_SIZE);
+}
+
+int MAX17332::compareWithMem(const uint8_t* data) {
+
+    uint8_t content[NVM_SIZE];
+    if (shadowMemDump(content) < 0) {
+        return -1;
+    } 
+
+    for (int i=0; i<NVM_SIZE; i++) {
+        if (data[i] != content[i]) {
+            return 0;
+        }
+    }
+
+    return 1;
+
 }
 
 int MAX17332::writeShadowMem(const uint8_t* data) {

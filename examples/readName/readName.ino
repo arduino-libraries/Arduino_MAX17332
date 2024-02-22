@@ -13,7 +13,7 @@
 #include <Arduino_MAX17332.h>
 #include <Wire.h>
 
-TwoWire WIRE();
+TwoWire WIRE;
 MAX17332 BMS(WIRE);
 
 void setup() {
@@ -21,7 +21,7 @@ void setup() {
     while (!Serial);
     if (!BMS.begin()) {
         Serial.println("Failed to initialize BMS");
-        while(1);
+        //while(1);
     }
 }
 
