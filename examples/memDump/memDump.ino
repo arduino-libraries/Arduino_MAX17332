@@ -14,8 +14,7 @@
 #include <Arduino_MAX17332.h>
 #include <Wire.h>
 
-TwoWire WIRE;
-MAX17332 BMS(WIRE);
+MAX17332 BMS(Wire);
 
 void setup() {
     Serial.begin(9600);
