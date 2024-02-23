@@ -521,9 +521,9 @@ int MAX17332::compareWithMem(const uint8_t* data) {
             continue;
         }
 
-        if (i>=64 && i<=71) {     // SKIP nQRTable REGISTERS
-            continue;
-        }
+        // if (i>=64 && i<=71) {     // SKIP nQRTable REGISTERS
+        //     continue;
+        // }
 
         if (data[i] != content[i]) {
             return 0;
