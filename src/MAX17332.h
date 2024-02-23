@@ -305,7 +305,7 @@ class MAX17332 {
         /**
             @brief  Flashes data to the NVM (0x180 - 0x1EF). NVM is limited to seven writes maximum. Use at own risk. Verification is not implemented
             @param  data const uint8_t input data array. Must be of size NVM_SIZE
-            @return 1 if OK; 0 on transmission error; -1 on NVError; -2 on verification error
+            @return 2 if already written; 1 if OK; 0 on transmission error; -1 on NVError; -2 on verification error
         */
         int writeNVM(const uint8_t* data);
 
