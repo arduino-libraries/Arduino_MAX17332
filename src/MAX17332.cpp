@@ -517,6 +517,14 @@ int MAX17332::compareWithMem(const uint8_t* data) {
     } 
 
     for (int i=0; i<NVM_SIZE; i++) {
+        if (i>=120 && i<=127) {     // SKIP ROMID REGISTERS
+            continue;
+        }
+
+        if (i>=64 && i<=71) {     // SKIP nQRTable REGISTERS
+            continue;
+        }
+
         if (data[i] != content[i]) {
             return 0;
         }
