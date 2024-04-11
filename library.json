@@ -5,7 +5,7 @@
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/gbr1/Arduino_MAX17332"
+    "url": "https://github.com/arduino-libraries/Arduino_MAX17332"
   },
   "authors":
   [
@@ -16,7 +16,7 @@
     },
     {
       "name": "Lucio Rossi",
-      "email": "l.rossi@ext.arduino.cc",
+      "email": "l.rossi@arduino.cc",
       "maintainer": true
     }
   ],
