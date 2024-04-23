@@ -10,8 +10,8 @@
 
 */
 
-#ifndef  _ARUDINO_MAX17332_H_
-#define  _ARUDINO_MAX17332_H_
+#ifndef  _ARDUINO_MAX17332_H_
+#define  _ARDUINO_MAX17332_H_
 
 #include "MAX17332.h"
 #include "MAX17332_Programmer.h"

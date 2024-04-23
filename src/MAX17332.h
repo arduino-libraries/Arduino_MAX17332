@@ -341,7 +341,7 @@ class MAX17332 {
             @brief  Writes register @address. For some registers mem should be freed in advance
             @param  address 9-bit address
             @param  value the data word
-            @return rgister content or -1 on transmission error
+            @return 1 if OK; 0 on transmission error
         */
         int writeRegister(uint16_t address, uint16_t value);
 
