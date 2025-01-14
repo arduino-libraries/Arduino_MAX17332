@@ -270,7 +270,7 @@ float MAX17332::readVCell()
     uint16_t v_int;
 
     if (!readRegisters(MAX17332_VCELLREP_REG, (uint8_t*) &v_int, sizeof(v_int))) {
-        return 0.0;
+        return ERROR_VAL;
     }
 
     return (float) v_int * VOLTAGE_LSB;
@@ -282,7 +282,7 @@ float MAX17332::readCurrent()
     uint16_t val;
 
     if (!readRegisters(MAX17332_CURRREP_REG, (uint8_t*) &val, sizeof(val))) {
-        return 0.0;
+        return ERROR_VAL;
     }
 
     int16_t curr = static_cast<int16_t>(val);
@@ -296,7 +296,7 @@ float MAX17332::readRSense()
     int value = readRegister(MAX17332_RSENSE_REG);
 
     if (!value) {
-        return 0.0;
+        return ERROR_VAL;
     }
 
     return (float) value * RSENSE_LSB;
@@ -308,7 +308,7 @@ float MAX17332::readTemp()
     uint16_t val;
 
     if (!readRegisters(MAX17332_TEMP_REG, (uint8_t*) &val, sizeof(val))) {
-        return 0.0;
+        return ERROR_VAL;
     }
 
     int16_t temp = static_cast<int16_t>(val);
@@ -322,7 +322,7 @@ float MAX17332::readSoc()
     uint16_t val;
 
     if (!readRegisters(MAX17332_REPSOC_REG, (uint8_t*) &val, sizeof(val))) {
-        return 0.0;
+        return ERROR_VAL;
     }
 
     int16_t soc = static_cast<int16_t>(val);

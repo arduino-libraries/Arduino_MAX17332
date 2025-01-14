@@ -56,6 +56,7 @@
 #define RSENSE_DEFAULT              10e-3
 #define TEMP_LSB                    0.00390625      ///<  1/256°C
 #define PERC_LSB                    0.00390625      ///<  1/256%
+#define ERROR_VAL                   -999.0
 
 // COMMANDS
 #define COPY_NV_BLOCK_CMD           0xE904          ///< Copy shadow RAM to NVM
